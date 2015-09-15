@@ -1,0 +1,34 @@
+{
+  "name": "mongoose-populate-virtuals",
+  "version": "1.0.0",
+  "description": "Extend mongoose 4+ with virtuals that can be populated using any attribute on either model.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/alexmingoia/mongoose-populate-virtuals.git"
+  },
+  "keywords": [
+    "mongoose",
+    "populate",
+    "aggregation",
+    "population",
+    "join",
+    "mongoose-deep-populate",
+    "mongoose-reverse-populate",
+    "mongoose-power-populate"
+  ],
+  "author": {
+    "name": "Alex Mingoia"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alexmingoia/mongoose-populate-virtuals/issues"
+  },
+  "homepage": "https://github.com/alexmingoia/mongoose-populate-virtuals",
+  "peerDependencies": {
+    "mongoose": "^4.0.0"
+  }
+}
