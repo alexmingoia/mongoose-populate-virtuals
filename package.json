@@ -1,7 +1,7 @@
 {
   "name": "mongoose-populate-virtuals",
   "version": "1.0.0",
-  "description": "Extend mongoose 4+ with virtuals that can be populated using any attribute on either model.",
+  "description": "Extend Mongoose 4+ population with virtual attributes that can be populated in either direction.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

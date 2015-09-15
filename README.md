@@ -1,10 +1,8 @@
 # mongoose-populate-virtuals
 
-> Extend mongoose 4+ with virtuals that can be populated using any attribute on
-> either model.
-
-Create [virtual](http://mongoosejs.com/docs/guide.html#virtuals) attributes
-that can be reverse populated and have paths separate from the key.
+> Extend Mongoose 4+ [population](http://mongoosejs.com/docs/populate.html)
+> with [virtual](http://mongoosejs.com/docs/guide.html#virtuals) attributes
+> that can be populated in either direction.
 
 ## Usage
 
