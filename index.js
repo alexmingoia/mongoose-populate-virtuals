@@ -107,7 +107,7 @@ function utilsPopulate (path, select, model, match, options, subPopulate) {
 
     if (Array.isArray(path)) {
       return path.map(function(o){
-        return utilsPopulate(o)[0];
+        return utilsPopulate.call({ model: parentModel }, o)[0];
       });
     }
 
@@ -118,7 +118,7 @@ function utilsPopulate (path, select, model, match, options, subPopulate) {
       foreignKey = path.foreignKey;
       localKey = path.localKey;
       arrayPop = path.singular;
-      model = path.model;
+      model = path.model || path.ref;
       subPopulate = path.populate;
       path = path.path;
     }
@@ -133,8 +133,9 @@ function utilsPopulate (path, select, model, match, options, subPopulate) {
   }
 
   if (typeof subPopulate === 'object') {
-    subPopulate.parentModel = parentModel && parentModel.db.model(model);
-    subPopulate = utilsPopulate(subPopulate);
+    subPopulate = utilsPopulate.call({
+      model: parentModel && parentModel.db.model(model)
+    }, subPopulate);
   }
 
   var ret = [];
@@ -221,7 +222,9 @@ Model.populate = function (docs, paths, cb) {
   }
 
   // normalized paths
-  paths = utils.populate(paths);
+  paths = utils.populate.call({
+    model: this
+  }, paths);
   var pending = paths.length;
 
   if (0 === pending) {
@@ -327,35 +330,21 @@ function populate(model, docs, options, cb) {
       len = vals.length,
       rawOrder = {}, rawDocs = {}, key, val;
 
-    // optimization:
-    // record the document positions as returned by
-    // the query result.
+    // group results by foreignKey
     for (var i = 0; i < len; i++) {
       val = vals[i];
       key = String(utils.getValue(options.foreignKey || '_id', val));
       utils.setValue(options.path, key, docs[i]);
-      if (options.localKey && !options.arrayPop) {
-        if (!rawDocs[key]) {
-          rawDocs[key] = [];
-        }
-        rawDocs[key].push(val);
-      } else {
-        rawDocs[key] = val;
+      if (!rawDocs[key]) {
+        rawDocs[key] = [];
       }
-      rawOrder[key] = i;
+      rawDocs[key].push(val);
 
       // flag each as result of population
       if (!lean) val.$__.wasPopulated = true;
     }
 
-    assignVals({
-      rawIds: rawIds,
-      rawDocs: rawDocs,
-      rawOrder: rawOrder,
-      docs: docs,
-      path: options.path,
-      options: assignmentOpts
-    });
+    assignVals(options.path, docs, rawDocs, options, assignmentOpts);
     cb();
   });
 
@@ -581,27 +570,24 @@ function convertTo_id (val) {
  * to the original document path.
  */
 
-function assignVals (o) {
-  // replace the original ids in our intermediate _ids structure
-  // with the documents found by query
+function assignVals (path, docs, subdocs, options, assignmentOpts) {
+  var paths = path.split('.');
+  var localKeyPath = options.localKey;
 
-  assignRawDocsToIdStructure(o.rawIds, o.rawDocs, o.rawOrder, o.options);
-
-  // now update the original documents being populated using the
-  // result structure that contains real documents.
-
-  var docs = o.docs;
-  var path = o.path;
-  var rawIds = o.rawIds;
-  var options = o.options;
-
-  for (var i = 0; i < docs.length; ++i) {
-    if (utils.getValue(path, docs[i]) == null)
-      continue;
-    utils.setValue(path, rawIds[i], docs[i], function (val) {
-      return valueFilter(val, options);
-    });
+  if (paths.length > 1) {
+    paths.splice(-1, 1, options.localKey);
+    localKeyPath = paths.join('.');
   }
+  console.log(localKeyPath);
+
+  docs.forEach(function (doc) {
+    var localKey = utils.getValue(localKeyPath, doc);
+    utils.setValue(path, subdocs[localKey], doc, function (val) {
+      if (!val && !options.arrayPop) val = [];
+      if (val && options.arrayPop) val = val[0];
+      return valueFilter(val, assignmentOpts);
+    });
+  });
 }
 
 /*!
@@ -696,86 +682,6 @@ function isDoc (doc) {
 
   // only docs
   return true;
-}
-
-/*!
- * Assign `vals` returned by mongo query to the `rawIds`
- * structure returned from utils.getVals() honoring
- * query sort order if specified by user.
- *
- * This can be optimized.
- *
- * Rules:
- *
- *   if the value of the path is not an array, use findOne rules, else find.
- *   for findOne the results are assigned directly to doc path (including null results).
- *   for find, if user specified sort order, results are assigned directly
- *   else documents are put back in original order of array if found in results
- *
- * @param {Array} rawIds
- * @param {Array} vals
- * @param {Boolean} sort
- * @api private
- */
-
-function assignRawDocsToIdStructure (rawIds, resultDocs, resultOrder, options, recursed) {
-  // honor user specified sort order
-  var newOrder = [];
-  var sorting = options.sort && rawIds.length > 1;
-  var doc;
-  var sid;
-  var id;
-
-  for (var i = 0; i < rawIds.length; ++i) {
-    id = rawIds[i];
-
-    if (Array.isArray(id)) {
-      // handle [ [id0, id2], [id3] ]
-      assignRawDocsToIdStructure(id, resultDocs, resultOrder, options, true);
-      newOrder.push(id);
-      continue;
-    }
-
-    if (null === id && !sorting) {
-      // keep nulls for findOne unless sorting, which always
-      // removes them (backward compat)
-      newOrder.push(id);
-      continue;
-    }
-
-    sid = String(id);
-
-    if (recursed) {
-      // apply find behavior
-
-      // assign matching documents in original order unless sorting
-      doc = resultDocs[sid];
-      if (doc) {
-        if (sorting) {
-          newOrder[resultOrder[sid]] = doc;
-        } else {
-          newOrder.push(doc);
-        }
-      } else {
-        newOrder.push(id);
-      }
-    } else {
-      // apply findOne behavior - if document in results, assign, else assign null
-      newOrder[i] = doc = resultDocs[sid] || null;
-    }
-  }
-
-  rawIds.length = 0;
-  if (newOrder.length) {
-    // reassign the documents based on corrected order
-
-    // forEach skips over sparse entries in arrays so we
-    // can safely use this to our advantage dealing with sorted
-    // result sets too.
-    newOrder.forEach(function (doc, i) {
-      rawIds[i] = doc;
-    });
-  }
 }
 
 module.exports = function () {
