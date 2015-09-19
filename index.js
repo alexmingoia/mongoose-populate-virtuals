@@ -578,7 +578,6 @@ function assignVals (path, docs, subdocs, options, assignmentOpts) {
     paths.splice(-1, 1, options.localKey);
     localKeyPath = paths.join('.');
   }
-  console.log(localKeyPath);
 
   docs.forEach(function (doc) {
     var localKey = utils.getValue(localKeyPath, doc);
