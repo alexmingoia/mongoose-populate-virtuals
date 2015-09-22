@@ -17,14 +17,6 @@ Create document references to populate by defining
 `ref`, `localKey` and `foreignKey` options.
 
 ```javascript
-var Author = mongoose.model('Author', new mongoose.Schema({
-  name: {
-    type: String,
-    required: true
-  }
-}));
-
-// "reverse" population where the key is on the foreign model.
 Author.virtual('books', {
   ref: 'Book',
   foreignKey: 'authorId',
@@ -49,5 +41,4 @@ Options for populate [virtuals](http://mongoosejs.com/docs/guide.html#virtuals):
 - `match` Query used for `find()` or `fineOne`.
 - `options` Mongo options such as `sort` and `limit`.
 - `select` Mongoose's `.select()` argument.
-- `lean` Populate with lean objects.
 - `singular` Use singular reference instead of array.
