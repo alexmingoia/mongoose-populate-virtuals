@@ -12,6 +12,14 @@ utils.populate = utilsPopulate;
 
 Schema.prototype.virtual = function (name, options) {
   if (options && options.ref) {
+    if (!options.localKey) {
+      throw new Error("Reference virtuals require `localKey` option")
+    }
+
+    if (!options.foreignKey) {
+      throw new Error("Reference virtuals require `foreignKey` option")
+    }
+
     var virtual = schemaVirtual.call(this, name, options);
 
     // virtual model paths and non-schema document paths conflict,
