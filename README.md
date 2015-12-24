@@ -19,13 +19,13 @@ Create document references to populate by defining
 `ref`, `localKey` and `foreignKey` options.
 
 ```javascript
-Author.virtual('books', {
+AuthorSchema.virtual('books', {
   ref: 'Book',
   foreignKey: 'authorId',
   localKey: '_id'
 });
 
-Author.find().populate('books').exec(...);
+AuthorModel.find().populate('books').exec(...);
 ```
 
 Remember [virtual](http://mongoosejs.com/docs/guide.html#virtuals) attributes
