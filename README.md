@@ -2,9 +2,13 @@
 
 [![Build Status](https://img.shields.io/travis/alexmingoia/mongoose-populate-virtuals.svg?style=flat)](http://travis-ci.org/alexmingoia/mongoose-populate-virtuals) [![NPM version](https://img.shields.io/npm/v/mongoose-populate-virtuals.svg?style=flat)](http://badge.fury.io/js/mongoose-populate-virtuals)
 
-> Extend Mongoose 4+ [population](http://mongoosejs.com/docs/populate.html)
+> Replace Mongoose 4+ [population](http://mongoosejs.com/docs/populate.html)
 > with [virtual](http://mongoosejs.com/docs/guide.html#virtuals) attributes
 > that can be populated in either direction.
+
+Note: This module changes the functionality of `.populate()`. You must populate
+virtual attributes instead of ObjectId attributes, and adding a `ref` option
+to ObjectId attributes no longer does anything.
 
 ## Usage
 
