@@ -4,7 +4,7 @@
   "description": "Extend Mongoose 4+ population with virtual attributes that can be populated in either direction.",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha test --reporter dot"
+    "test": "./node_modules/mocha/bin/mocha test"
   },
   "repository": {
     "type": "git",
